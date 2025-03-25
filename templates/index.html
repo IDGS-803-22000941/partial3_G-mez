@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <title>Pizzería</title>
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header with Diagonal Split Design -->
+        <header class="relative mb-10">
+            <div class="absolute inset-0 bg-red-700 transform -skew-y-6 origin-top-left"></div>
+            <div class="relative flex justify-between items-center z-10">
+                <h1 class="text-4xl font-bold text-white">🍕 Pizzería 🍕</h1>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-200">Bienvenido, {{ usuario.username }}</span>
+                    <a href="{{ url_for('logout') }}" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold transition duration-300">
+                        Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Container with Card-like Design -->
+        <div class="bg-gray-800 rounded-3xl shadow-2xl border border-gray-700 p-8 space-y-8">
+            <!-- Order Form Section -->
+            <section class="grid md:grid-cols-3 gap-6">
+                <div class="md:col-span-2 bg-gray-700 rounded-xl p-6">
+                    <h2 class="text-2xl font-bold text-white mb-6">Haz tu pedido</h2>
+                    
+                    <form method="POST" action="{{ url_for('agregar_pizza') }}" class="space-y-6">
+                        {{ form.hidden_tag() }}
+
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-gray-300 mb-2">Tamaño de Pizza</label>
+                                <select name="tamano" class="w-full p-3 bg-gray-800 text-white rounded-lg border border-gray-600">
+                                    <option value="Chica">Chica $40</option>
+                                    <option value="Mediana">Mediana $80</option>
+                                    <option value="Grande">Grande $120</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 mb-2">Ingredientes</label>
+                                <div class="space-y-2">
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" name="ingredientes" value="Jamon" class="form-checkbox text-red-500 bg-gray-800 border-gray-600 rounded">
+                                        <span class="ml-2 text-gray-300">Jamón $10</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" name="ingredientes" value="Piña" class="form-checkbox text-red-500 bg-gray-800 border-gray-600 rounded">
+                                        <span class="ml-2 text-gray-300">Piña $10</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" name="ingredientes" value="Champiñones" class="form-checkbox text-red-500 bg-gray-800 border-gray-600 rounded">
+                                        <span class="ml-2 text-gray-300">Champiñones $10</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 mb-2">Número de Pizzas</label>
+                                <input type="number" name="cantidad" min="1" value="1" class="w-full p-3 bg-gray-800 text-white rounded-lg border border-gray-600">
+                            </div>
+                        </div>
+
+                        <div class="text-right">
+                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold transition duration-300">
+                                Agregar al Pedido
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Order Summary Card -->
+                <div class="bg-gray-700 rounded-xl p-6">
+                    <h3 class="text-xl font-bold text-white mb-4">Resumen del Pedido</h3>
+                    <div class="space-y-2">
+                        {% for pizza in pizzas %}
+                        <div class="bg-gray-800 p-3 rounded-lg flex justify-between items-center">
+                            <div>
+                                <p class="font-medium">{{ pizza.tamano }} | {{ ", ".join(pizza.ingredientes) }}</p>
+                                <p class="text-sm text-gray-400">{{ pizza.cantidad }} x ${{ pizza.subtotal }}</p>
+                            </div>
+                            <a href="{{ url_for('quitar_pizza', index=loop.index0) }}" class="text-red-500 hover:text-red-600">
+                                ✖
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- Customer Details Section -->
+            <section class="bg-gray-700 rounded-xl p-6">
+                <form method="POST" action="{{ url_for('finalizar_pedido') }}">
+                    {{ form.hidden_tag() }}
+                    <h3 class="text-xl font-bold text-white mb-6">Datos del Cliente</h3>
+
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-gray-300 mb-2">Nombre</label>
+                            <input type="text" name="nombre" required class="w-full p-3 bg-gray-800 text-white rounded-lg border border-gray-600">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2">Dirección</label>
+                            <input type="text" name="direccion" required class="w-full p-3 bg-gray-800 text-white rounded-lg border border-gray-600">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2">Teléfono</label>
+                            <input type="text" name="telefono" required class="w-full p-3 bg-gray-800 text-white rounded-lg border border-gray-600">
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="fecha" value="{{ form.fecha.data or fecha_actual }}">
+
+                    <button type="submit" class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold transition duration-300">
+                        Finalizar Pedido
+                    </button>
+                </form>
+            </section>
+
+            <!-- Sales Report Section -->
+            <section class="bg-gray-700 rounded-xl p-6">
+                <h3 class="text-xl font-bold mb-6">Reporte de Ventas</h3>
+
+                <form method="POST" action="{{ url_for('reporte') }}" class="mb-6">
+                    {{ form_reporte.hidden_tag() }}
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-300 mb-2">Selecciona el período:</label>
+                            <div class="flex space-x-2">
+                                {{ form_reporte.filtro(class="flex-1 p-3 bg-gray-800 text-white rounded-lg border border-gray-600") }}
+                                {{ form_reporte.fecha(class="flex-1 p-3 bg-gray-800 text-white rounded-lg border border-gray-600") }}
+                            </div>
+                        </div>
+                        <div class="flex items-end">
+                            <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-6 py-3 rounded-lg font-bold transition duration-300">
+                                Buscar Ventas
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="bg-gray-800 rounded-lg p-4 mb-4">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-gray-300">Total de Ventas:</h4>
+                        <div class="text-xl font-bold text-yellow-400">${{ ventas_totales }}</div>
+                    </div>
+                </div>
+
+                {% if ventas %}
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-gray-900 text-gray-300">
+                                <th class="p-3 text-left">Cliente</th>
+                                <th class="p-3 text-left">Dirección</th>
+                                <th class="p-3 text-left">Teléfono</th>
+                                <th class="p-3 text-left">Total Pagado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venta in ventas %}
+                            <tr class="border-t border-gray-800 hover:bg-gray-800">
+                                <td class="p-3">{{ venta.nombre }}</td>
+                                <td class="p-3">{{ venta.direccion }}</td>
+                                <td class="p-3">{{ venta.telefono }}</td>
+                                <td class="p-3 font-medium text-yellow-400">${{ venta.total }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center p-4 bg-gray-800 rounded-lg">
+                    <p class="text-gray-400">No hay ventas registradas para este período.</p>
+                </div>
+                {% endif %}
+            </section>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="mt-4 p-3 rounded {{ 'bg-green-700' if category == 'success' else 'bg-red-700' }} text-white">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+</body>
+
+</html>
